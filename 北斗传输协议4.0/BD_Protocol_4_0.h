@@ -8,10 +8,10 @@
 const int RE_BUFFER_SIZE = 2047;
 
 typedef unsigned int  UINT;
-typedef unsigned char  UCHR;
+typedef unsigned char  UCHR; 
 extern int(*myprint)(_In_z_ _Printf_format_string_ char const* const, ...);
 #define GNTX_LENTH 0x12
-//#define GNVX_LENTH
+//#define GNVX_LENTH 
 #define GNPX_LENTH 0x20
 struct RE_BUFFER
 {
