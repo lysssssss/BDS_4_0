@@ -5,7 +5,7 @@
 
 
 bool CSerialPort::s_bExit = false;
-
+CSerialPort mySerialPort;
 const UINT SLEEP_TIME_INTERVAL = 5;
 
 CSerialPort::CSerialPort(void)
@@ -245,13 +245,17 @@ UINT WINAPI CSerialPort::ListenThread(void* pParam)
 					std::cout << '0';
 				std::cout << std::hex <<(UINT)(unsigned char)cRecved;
 				std::cout << std::dec<<' ';*/
-				rebuff.buffer[rebuff.rp++] = cRecved;
-				if (rebuff.rp == RE_BUFFER_SIZE)
-					rebuff.rp = 0;
+				if (((rebuff.wp + 1)&RE_BUFFER_SIZE) != rebuff.rp)
+				{
+					rebuff.buffer[rebuff.wp++] = cRecved;
+					if (rebuff.wp == RE_BUFFER_SIZE)
+						rebuff.wp = 0;
+				}
+
 				continue;
 			}
 		} while (--BytesInQue);
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	}
 
 	return 0;

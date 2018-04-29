@@ -1,12 +1,18 @@
 #pragma once
 #ifndef __BD_PROTOCOL_4_0_H
 #define __BD_PROTOCOL_4_0_H
+#include "malloc.h"
+#include <string.h>
+#include "SerialPort.h"  
 
-const int RE_BUFFER_SIZE = 2048;
+const int RE_BUFFER_SIZE = 2047;
 
 typedef unsigned int  UINT;
 typedef unsigned char  UCHR;
-
+extern int(*myprint)(_In_z_ _Printf_format_string_ char const* const, ...);
+#define GNTX_LENTH 0x12
+//#define GNVX_LENTH
+#define GNPX_LENTH 0x20
 struct RE_BUFFER
 {
 	UINT wp;
@@ -131,7 +137,7 @@ struct BD_BBXX // 版本信息
 struct BD_FKXX //反馈信息
 {
 	UCHR flbz;//反馈标志
-	UINT fjxx;//附加信息
+	UCHR fjxx[4];//附加信息
 };
 
 struct BDXX
@@ -152,7 +158,31 @@ struct BDXX
 	struct BD_ZJXX zjxx;
 };
 
-
+void init();
+void check_status();
+void icjc_send();
+void xyzj_send();
+void sjsc_send();
+void dwsq_send();
+void txsq_send(const char *buffer, UINT len, UCHR *dis);
+UCHR xor_checksum(UCHR *buf, UINT location, UINT len);
+UCHR xor_checksum2(UCHR *buf, UINT len);
+void Extract_DWXX(UCHR *buf, UINT i);
+void print_dwxx();
+void Extract_TXXX(UCHR *buf, UINT i);
+void print_txxx();
+void Extract_ICXX(UCHR *buf, UINT i);
+void print_icxx();
+void Extract_ZJXX(UCHR *buf, UINT i);
+void print_zjxx();
+void Extract_SJXX(UCHR *buf, UINT i);
+void print_sjxx();
+void Extract_FKXX(UCHR *buf, UINT i);
+void print_fkxx();
+void Receive_Protocol();
+bool check_overflow(RE_BUFFER *buff, UINT value);
+void Analysis_data(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *buffer, const UINT package_length);
+void DATA_Handler(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *data, const UINT lenth);
 
 #endif
 

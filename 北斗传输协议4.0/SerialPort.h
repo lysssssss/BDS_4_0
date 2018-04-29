@@ -6,6 +6,7 @@
 #include "stdio.h"
 #include <process.h>
 #include <iostream>
+
 class CSerialPort
 {
 public:
@@ -61,5 +62,5 @@ private:
 	CRITICAL_SECTION   m_csCommunicationSync;       //!< »¥³â²Ù×÷´®¿Ú  
 
 };
-
+extern CSerialPort mySerialPort;
 #endif //SERIALPORT_H_ #pragma once
