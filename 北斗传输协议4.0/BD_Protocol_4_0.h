@@ -33,6 +33,7 @@ struct RE_BUFFER
 };
 extern RE_BUFFER rebuff;
 
+extern UCHR status;
 #define GNTX_LENTH 0x12
 struct BD_GNTX
 {
@@ -218,7 +219,7 @@ struct BDXX
 	struct BD_GNPX gnpx;
 	struct BD_GNVX gnvx;
 };
-
+extern BDXX bdxx;
 void init();
 void check_status();
 void icjc_send();
@@ -254,4 +255,5 @@ UINT UCHRtoUINT(UCHR a, UCHR b);
 char* data_encapsulation(char *send_buffer, const char *data, const UINT length_data);
 void bd_send(const char *buffer, UINT len, UCHR *dis);
 void Handle_FXXX();
+void Handle_ZJXX();
 #endif __BD_PROTOCOL_4_0_H

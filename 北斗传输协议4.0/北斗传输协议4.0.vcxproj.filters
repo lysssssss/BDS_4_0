@@ -33,6 +33,15 @@
     <ClCompile Include="BD_Protocol_4_0.cpp">
       <Filter>源文件\北斗</Filter>
     </ClCompile>
+    <ClCompile Include="Receive_Protocol.cpp">
+      <Filter>源文件\北斗</Filter>
+    </ClCompile>
+    <ClCompile Include="print_xx.cpp">
+      <Filter>源文件\北斗</Filter>
+    </ClCompile>
+    <ClCompile Include="Extract_xx.cpp">
+      <Filter>源文件\北斗</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SerialPort.h">

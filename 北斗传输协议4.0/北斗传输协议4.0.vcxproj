@@ -116,6 +116,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BD_Protocol_4_0.cpp" />
+    <ClCompile Include="Extract_xx.cpp" />
+    <ClCompile Include="print_xx.cpp" />
+    <ClCompile Include="Receive_Protocol.cpp" />
     <ClCompile Include="SerialPort.cpp" />
     <ClCompile Include="串口.cpp" />
     <ClCompile Include="源.cpp" />
