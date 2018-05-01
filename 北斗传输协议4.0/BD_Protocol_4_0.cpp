@@ -34,18 +34,17 @@ void check_status()//第八位为回复位，第七位为确认位
 			break;
 		case 0x43:
 			status = 0x84;//就绪
-			//txsq_send("hello",5,bdxx.icxx.yhdz);
 			break;
 		case 0x03:
 			status = 0x81;
 			break;
 		default:
-			char aaa[2048];
+			char aaa[255];
 			for (int i = 0; i < 22; ++i)
 			{
 				aaa[i] = '*';
 			}
-			txsq_send(aaa, (UINT)(22), bdxx.icxx.yhdz);
+			bd_send(aaa, (UINT)(22), bdxx.icxx.yhdz);
 			break;
 		}
 	}
@@ -110,6 +109,36 @@ void sjsc_send()
 	sendbuffer[11] = 1;
 	sendbuffer[12] = xor_checksum2(sendbuffer, 12);
 	mySerialPort.WriteData(sendbuffer, 13);
+}
+
+
+char* data_encapsulation(char *send_buffer, const char *data, const UINT length_data)
+{
+	UINT i, length = 2 + length_data, crc = 0;
+	for (i = 0; i < length_data; ++i)
+		crc += data[i];
+	crc += (length >> 8);
+	crc += (length & 0xff);
+	send_buffer[0] = 0x11;
+	send_buffer[1] = (UCHR)(length >> 8);
+	send_buffer[2] = (UCHR)(length & 0xff);
+	send_buffer[length_data + DATA_FIRM_LENTH - 3] = (crc >> 8) & 0x0ff;
+	send_buffer[length_data + DATA_FIRM_LENTH - 2] = crc & 0x0ff;
+	send_buffer[length_data + DATA_FIRM_LENTH - 1] = 0x16;
+	for (i = 0; i < length_data; ++i)
+		send_buffer[3 + i] = data[i];
+	return send_buffer;
+}
+
+void bd_send(const char *buffer, UINT len, UCHR *dis)
+{
+	if (len > 0)
+	{
+		char *send_buffer;
+		send_buffer = (char *)malloc(sizeof(char)*(len + DATA_FIRM_LENTH));
+		txsq_send(data_encapsulation(send_buffer, buffer, len), len + DATA_FIRM_LENTH, dis);
+		free(send_buffer);
+	}
 }
 
 void txsq_send(const char *buffer, UINT len, UCHR *dis)
@@ -209,10 +238,8 @@ void Extract_DWXX(UCHR *buf, UINT i)
 	bdxx.dwxx.B += (*(buf + ((i + 23)&RE_BUFFER_SIZE)) << 16) & 0xff0000;
 	bdxx.dwxx.B += (*(buf + ((i + 24)&RE_BUFFER_SIZE)) << 8) & 0xff00;
 	bdxx.dwxx.B += *(buf + ((i + 25)&RE_BUFFER_SIZE)) & 0x000000ff;
-	bdxx.dwxx.H = (*(buf + ((i + 26)&RE_BUFFER_SIZE)) << 8) & 0xff00;
-	bdxx.dwxx.H += *(buf + ((i + 27)&RE_BUFFER_SIZE)) & 0xff;
-	bdxx.dwxx.S = (*(buf + ((i + 28)&RE_BUFFER_SIZE)) << 8) & 0xff00;
-	bdxx.dwxx.S += *(buf + ((i + 29)&RE_BUFFER_SIZE)) & 0xff;
+	bdxx.dwxx.H = UCHRtoUINT(*(buf + ((i + 26)&RE_BUFFER_SIZE)), *(buf + ((i + 27)&RE_BUFFER_SIZE)));
+	bdxx.dwxx.S = UCHRtoUINT(*(buf + ((i + 28)&RE_BUFFER_SIZE)), *(buf + ((i + 29)&RE_BUFFER_SIZE)));
 	print_dwxx();
 }
 void print_dwxx()
@@ -227,8 +254,7 @@ void Extract_TXXX(UCHR *buf, UINT i)
 	bdxx.txxx.fxfdz[2] = *(buf + ((i + 13)&RE_BUFFER_SIZE));
 	bdxx.txxx.fxsj_h = *(buf + ((i + 14)&RE_BUFFER_SIZE));
 	bdxx.txxx.fxsj_m = *(buf + ((i + 15)&RE_BUFFER_SIZE));
-	bdxx.txxx.dwcd = (*(buf + ((i + 16)&RE_BUFFER_SIZE)) << 8) & 0xff00;
-	bdxx.txxx.dwcd += *(buf + ((i + 17)&RE_BUFFER_SIZE)) & 0xff;
+	bdxx.txxx.dwcd = UCHRtoUINT(*(buf + ((i + 16)&RE_BUFFER_SIZE)), *(buf + ((i + 17)&RE_BUFFER_SIZE)));
 	for (UINT ii = 0; ii * 8 < bdxx.txxx.dwcd; ++ii)
 	{
 		bdxx.txxx.dwnr[ii] = *(buf + ((i + 18 + ii)&RE_BUFFER_SIZE));
@@ -250,7 +276,7 @@ void print_txxx()
 		bdxx.txxx.xxlb, bdxx.txxx.fxfdz[0], bdxx.txxx.fxfdz[1], bdxx.txxx.fxfdz[2],
 		bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwcd, bdxx.txxx.crc);
 	myprint("电文内容:");
-	for (int i = 0; i < bdxx.txxx.dwcd / 8; ++i)
+	for (UINT i = 0; i < bdxx.txxx.dwcd / 8; ++i)
 	{
 		myprint("%0x ", bdxx.txxx.dwnr[i]);
 	}
@@ -262,16 +288,12 @@ void Extract_ICXX(UCHR *buf, UINT i)
 	bdxx.icxx.yhdz[1] = *(buf + ((i + 8)&RE_BUFFER_SIZE));
 	bdxx.icxx.yhdz[2] = *(buf + ((i + 9)&RE_BUFFER_SIZE));
 	bdxx.icxx.zh = *(buf + ((i + 10)&RE_BUFFER_SIZE));
-	bdxx.icxx.tbid = (UINT)(*(buf + ((i + 11)&RE_BUFFER_SIZE)))*(1 << 16);
-	bdxx.icxx.tbid += (UINT)(*(buf + ((i + 12)&RE_BUFFER_SIZE)))*(1 << 8);
-	bdxx.icxx.tbid += (UINT)(*(buf + ((i + 13)&RE_BUFFER_SIZE)));
+	bdxx.icxx.tbid = UCHRtoUINT(*(buf + ((i + 11)&RE_BUFFER_SIZE)), UCHRtoUINT(*(buf + ((i + 12)&RE_BUFFER_SIZE)), *(buf + ((i + 13)&RE_BUFFER_SIZE))));
 	bdxx.icxx.yhtz = *(buf + ((i + 14)&RE_BUFFER_SIZE));
-	bdxx.icxx.fwpd = (UINT)(*(buf + ((i + 15)&RE_BUFFER_SIZE)))*(1 << 8);
-	bdxx.icxx.fwpd += (UINT)(*(buf + ((i + 16)&RE_BUFFER_SIZE)));
+	bdxx.icxx.fwpd = UCHRtoUINT(*(buf + ((i + 15)&RE_BUFFER_SIZE)), *(buf + ((i + 16)&RE_BUFFER_SIZE)));
 	bdxx.icxx.txdj = *(buf + ((i + 17)&RE_BUFFER_SIZE));
 	bdxx.icxx.jmbz = *(buf + ((i + 18)&RE_BUFFER_SIZE));
-	bdxx.icxx.xsyhzs = (UINT)(*(buf + ((i + 19)&RE_BUFFER_SIZE)))*(1 << 8);
-	bdxx.icxx.xsyhzs += (UINT)(*(buf + ((i + 20)&RE_BUFFER_SIZE)));
+	bdxx.icxx.xsyhzs = UCHRtoUINT(*(buf + ((i + 19)&RE_BUFFER_SIZE)), *(buf + ((i + 20)&RE_BUFFER_SIZE)));
 	if ((status & 0x3f) == 0x01)
 		status |= 0xC0;
 	print_icxx();
@@ -312,8 +334,7 @@ void print_zjxx()
 }
 void Extract_SJXX(UCHR *buf, UINT _i)
 {
-	bdxx.sjxx.year = (UINT)(*(buf + ((_i + 10)&RE_BUFFER_SIZE)))*(1 << 8);
-	bdxx.sjxx.year += (UINT)*(buf + ((_i + 11)&RE_BUFFER_SIZE));
+	bdxx.sjxx.year = UCHRtoUINT(*(buf + ((_i + 10)&RE_BUFFER_SIZE)), *(buf + ((_i + 11)&RE_BUFFER_SIZE)));
 	bdxx.sjxx.month = *(buf + ((_i + 12)&RE_BUFFER_SIZE));
 	bdxx.sjxx.day = *(buf + ((_i + 13)&RE_BUFFER_SIZE));
 	bdxx.sjxx.hour = *(buf + ((_i + 14)&RE_BUFFER_SIZE));
@@ -357,12 +378,94 @@ void print_fkxx()
 	else if (bdxx.fkxx.flbz == 3)
 		myprint("电量不足\n");
 	else if (bdxx.fkxx.flbz == 4)
-		myprint("发射频度未到,时间:%d\n", bdxx.fkxx.fjxx[3]);
+		myprint("发射频度未到,时间:%d秒\n", bdxx.fkxx.fjxx[3]);
 	else if (bdxx.fkxx.flbz == 5)
 		myprint("加解密错误\n");
 	else if (bdxx.fkxx.flbz == 6)
 		myprint("CRC错误,指令:%c%c%c%c\n", bdxx.fkxx.fjxx[0], bdxx.fkxx.fjxx[1], bdxx.fkxx.fjxx[2], bdxx.fkxx.fjxx[3]);
 }
+
+void Extract_GNTX(UCHR *buf, UINT i)
+{
+
+	bdxx.gntx.sqlx = *(buf + ((i + 10)&RE_BUFFER_SIZE));
+	bdxx.gntx.year = *(buf + ((i + 11)&RE_BUFFER_SIZE));
+	bdxx.gntx.month = *(buf + ((i + 12)&RE_BUFFER_SIZE));
+	bdxx.gntx.day = *(buf + ((i + 13)&RE_BUFFER_SIZE));
+	bdxx.gntx.hour = *(buf + ((i + 14)&RE_BUFFER_SIZE));
+	bdxx.gntx.minute = *(buf + ((i + 15)&RE_BUFFER_SIZE));
+	bdxx.gntx.second = *(buf + ((i + 16)&RE_BUFFER_SIZE));
+	print_gntx();
+	/*if ((status & 0x3f) == 0x01)  //TODO
+	status |= 0xC0;*/
+}
+
+void print_gntx()
+{
+	myprint("GNTX:时区:%d,%d年%d月%d日%d时%d分%d秒\n", bdxx.gntx.sqlx, bdxx.gntx.year + 2000, bdxx.gntx.month, bdxx.gntx.day, bdxx.gntx.hour, bdxx.gntx.minute, bdxx.gntx.second);
+}
+
+UINT UCHRtoUINT(UCHR a, UCHR b)
+{
+	return ((UINT)a << 8) & 0xff00 + (UINT)b;
+}
+
+void Extract_GNPX(UCHR *buf, UINT i)
+{
+
+	bdxx.gnpx.jdfw = *(buf + ((i + 10)&RE_BUFFER_SIZE));
+	bdxx.gnpx.jd = *(buf + ((i + 11)&RE_BUFFER_SIZE));
+	bdxx.gnpx.jf = *(buf + ((i + 12)&RE_BUFFER_SIZE));
+	bdxx.gnpx.jm = *(buf + ((i + 13)&RE_BUFFER_SIZE));
+	bdxx.gnpx.jxm = *(buf + ((i + 14)&RE_BUFFER_SIZE));
+	bdxx.gnpx.wdfw = *(buf + ((i + 15)&RE_BUFFER_SIZE));
+	bdxx.gnpx.wd = *(buf + ((i + 16)&RE_BUFFER_SIZE));
+	bdxx.gnpx.wf = *(buf + ((i + 17)&RE_BUFFER_SIZE));
+	bdxx.gnpx.wm = *(buf + ((i + 18)&RE_BUFFER_SIZE));
+	bdxx.gnpx.wxm = *(buf + ((i + 19)&RE_BUFFER_SIZE));
+	bdxx.gnpx.gd = UCHRtoUINT(*(buf + ((i + 20)&RE_BUFFER_SIZE)), *(buf + ((i + 21)&RE_BUFFER_SIZE)));
+	bdxx.gnpx.sd = UCHRtoUINT(*(buf + ((i + 22)&RE_BUFFER_SIZE)), *(buf + ((i + 23)&RE_BUFFER_SIZE)));
+	bdxx.gnpx.fx = UCHRtoUINT(*(buf + ((i + 24)&RE_BUFFER_SIZE)), *(buf + ((i + 25)&RE_BUFFER_SIZE)));
+	bdxx.gnpx.wxs = *(buf + ((i + 26)&RE_BUFFER_SIZE));
+	bdxx.gnpx.zt = *(buf + ((i + 27)&RE_BUFFER_SIZE));
+	bdxx.gnpx.jdxs = *(buf + ((i + 28)&RE_BUFFER_SIZE));
+	bdxx.gnpx.gjwc = UCHRtoUINT(*(buf + ((i + 29)&RE_BUFFER_SIZE)), *(buf + ((i + 30)&RE_BUFFER_SIZE)));
+	print_gnpx();
+	/*if ((status & 0x3f) == 0x01)  //TODO
+	status |= 0xC0;*/
+}
+
+void print_gnpx()
+{
+	myprint("GNPX:经度范围:%d,经度%d,经分%d,经秒%d,经小秒%d,纬度范围%d,纬度%d,纬分%d,纬秒%d,纬小秒%d,高度:%d\
+			,速度%d,方向%d,卫星数%d,状态%d,精度系数%d,估计误差:%d", bdxx.gnpx.jdfw, bdxx.gnpx.jd, bdxx.gnpx.jf, bdxx.gnpx.jm, bdxx.gnpx.jxm,
+		bdxx.gnpx.wdfw, bdxx.gnpx.wd, bdxx.gnpx.wf, bdxx.gnpx.wm, bdxx.gnpx.wxm, bdxx.gnpx.gd, bdxx.gnpx.sd, bdxx.gnpx.fx, bdxx.gnpx.wxs,
+		bdxx.gnpx.zt, bdxx.gnpx.jdxs, bdxx.gnpx.gjwc);
+}
+
+void Extract_GNVX(UCHR *buf, UINT i)
+{
+
+	bdxx.gnvx.wxlb = *(buf + ((i + 10)&RE_BUFFER_SIZE));
+	bdxx.gnvx.wxgs = *(buf + ((i + 11)&RE_BUFFER_SIZE));
+	for (UINT _i = 0; _i < bdxx.gnvx.wxgs; ++_i)
+	{
+		UINT j = i + 12 + _i * 5;
+		bdxx.gnvx.wxxx[_i].wxbh = *(buf + (j &RE_BUFFER_SIZE));
+		bdxx.gnvx.wxxx[_i].wxyj = *(buf + ((j + 1) &RE_BUFFER_SIZE));
+		bdxx.gnvx.wxxx[_i].fwj = UCHRtoUINT(*(buf + ((j + 1) &RE_BUFFER_SIZE)), *(buf + ((j + 2) &RE_BUFFER_SIZE)));
+		bdxx.gnvx.wxxx[_i].xzb = *(buf + ((j + 3) &RE_BUFFER_SIZE));
+	}
+	print_gnvx();
+	/*if ((status & 0x3f) == 0x01)  //TODO
+	status |= 0xC0;*/
+}
+
+void print_gnvx()
+{
+	myprint("GNVX:卫星类别:%s,卫星个数:%d\n", bdxx.gnvx.wxlb == 1 ? "GPS卫星" : "BDS卫星", bdxx.gnvx.wxgs);
+}
+
 void Receive_Protocol()
 {
 	UINT i = rebuff.rp;
@@ -392,18 +495,17 @@ void Receive_Protocol()
 					if (check_overflow(&rebuff, _lenth))
 					{
 
-						//if (rebuff.buffer[(rebuff.rp + _lenth-1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth-1))
-						//{
-						//	Extract_FKXX(rebuff.buffer, i);
-						//}
+						if (rebuff.buffer[(rebuff.rp + _lenth - 1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth - 1))
+						{
+							Extract_GNTX(rebuff.buffer, i);
+						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
 						return;
 					}
-					//myprint("未知包1");
 			}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'G'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'N'
@@ -419,18 +521,17 @@ void Receive_Protocol()
 					if (check_overflow(&rebuff, _lenth))
 					{
 
-						//if (rebuff.buffer[(rebuff.rp + _lenth-1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth-1))
-						//{
-						//	Extract_FKXX(rebuff.buffer, i);
-						//}
+						if (rebuff.buffer[(rebuff.rp + _lenth - 1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth - 1))
+						{
+							Extract_GNPX(rebuff.buffer, i);
+						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
 						return;
 					}
-					//myprint("未知包2");
 		}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'G'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'N'
@@ -446,10 +547,10 @@ void Receive_Protocol()
 					if (check_overflow(&rebuff, _lenth))
 					{
 
-						//if (rebuff.buffer[(rebuff.rp + _lenth-1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth-1))
-						//{
-						//	Extract_FKXX(rebuff.buffer, i);
-						//}
+						if (rebuff.buffer[(rebuff.rp + _lenth - 1) & RE_BUFFER_SIZE] == xor_checksum(rebuff.buffer, i, _lenth - 1))
+						{
+							Extract_GNVX(rebuff.buffer, i);
+						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
 					}
 					else
@@ -457,8 +558,7 @@ void Receive_Protocol()
 						++error_count;
 						return;
 					}
-					//myprint("未知包3");
-	}
+				}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'D'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'W'
 					&&rebuff.buffer[(i + 3) & RE_BUFFER_SIZE] == 'X'
@@ -478,14 +578,14 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
 						return;
 					}
 
-				}
+	}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'T'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'X'
 					&&rebuff.buffer[(i + 3) & RE_BUFFER_SIZE] == 'X'
@@ -511,7 +611,7 @@ void Receive_Protocol()
 						++error_count;
 						return;
 					}
-}
+				}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'I'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'C'
 					&&rebuff.buffer[(i + 3) & RE_BUFFER_SIZE] == 'X'
@@ -531,13 +631,13 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
 						return;
 					}
-				}
+}
 				else if (rebuff.buffer[(i + 1) & RE_BUFFER_SIZE] == 'Z'
 					&&rebuff.buffer[(i + 2) & RE_BUFFER_SIZE] == 'J'
 					&&rebuff.buffer[(i + 3) & RE_BUFFER_SIZE] == 'X'
@@ -557,7 +657,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
@@ -583,7 +683,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
@@ -616,7 +716,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
-					}
+				}
 					else
 					{
 						++error_count;
@@ -628,12 +728,12 @@ void Receive_Protocol()
 					//不可解析
 					rebuff.rp = (rebuff.rp + 1) & RE_BUFFER_SIZE;
 				}
-			}
+	}
 			else
 			{
 				rebuff.rp = (rebuff.rp + 1) & RE_BUFFER_SIZE;
 			}
-		}
+}
 		else
 		{
 			++error_count;
@@ -696,3 +796,4 @@ void DATA_Handler(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *dat
 	//TODO
 
 }
+
