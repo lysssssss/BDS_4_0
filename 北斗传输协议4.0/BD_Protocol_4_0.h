@@ -11,7 +11,20 @@ const int RE_BUFFER_SIZE = 2047;
 typedef unsigned int  UINT;
 typedef unsigned char  UCHR;
 extern int(*myprint)(_In_z_ _Printf_format_string_ char const* const, ...);
+extern UCHR SEND_BLOCKTIME;
 
+//第八位为回复位，第七位为确认位,第六位预留,1-5位步骤
+#define STEP_NONE 0
+#define STEP_ICJC 1
+#define STEP_XJZJ 2
+#define STEP_SJSC 3
+#define STEP_READY 4
+#define STATUS_BIT_STEP 0x1f
+
+#define STATUS_BIT_ANSWER (1<<7)
+#define STATUS_BIT_NO_ANSWER (0<<7)
+#define STATUS_BIT_CONFIRM (1<<6)
+#define STATUS_BIT_NO_CONFIRM (0<<6)
 struct RE_BUFFER
 {
 	UINT wp;
@@ -240,4 +253,5 @@ void DATA_Handler(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *dat
 UINT UCHRtoUINT(UCHR a, UCHR b);
 char* data_encapsulation(char *send_buffer, const char *data, const UINT length_data);
 void bd_send(const char *buffer, UINT len, UCHR *dis);
+void Handle_FXXX();
 #endif __BD_PROTOCOL_4_0_H

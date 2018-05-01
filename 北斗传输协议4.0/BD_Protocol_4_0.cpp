@@ -2,41 +2,43 @@
 RE_BUFFER rebuff;
 BDXX bdxx;
 UCHR status = 0x80;
+UCHR SEND_BLOCKTIME = 0;
+UCHR error_flag = 0;
 int(*myprint)(_In_z_ _Printf_format_string_ char const* const, ...);
 void init()
 {
-	//结构体初始化0
+	//结构体初始化0 TODO
 	rebuff.rp = 0;
 	rebuff.wp = 0;
 	myprint = &printf;
 }
 
-void check_status()//第八位为回复位，第七位为确认位
+void check_status()
 {
-	if (status & 0x80)//有回复
+	if (status & STATUS_BIT_ANSWER)//有回复
 	{
-		switch (status & 0x7f)//检查确认位
+		switch (status & ~STATUS_BIT_ANSWER)//检查确认位
 		{
-		case 0x00:
-			status = 0x81;//初始化
+		case (STEP_NONE| STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);//初始化
 			break;
-		case 0x41:
-			status = 0x82;
+		case (STEP_ICJC | STATUS_BIT_CONFIRM):
+			status = (STEP_XJZJ | STATUS_BIT_ANSWER);
 			break;
-		case 0x01:
-			status = 0x81;
+		case (STEP_ICJC | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
 			break;
-		case 0x42:
-			status = 0x83;
+		case (STEP_XJZJ| STATUS_BIT_CONFIRM):
+			status = (STEP_SJSC | STATUS_BIT_ANSWER);
 			break;
-		case 0x02:
-			status = 0x81;
+		case (STEP_XJZJ | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
 			break;
-		case 0x43:
-			status = 0x84;//就绪
+		case (STEP_SJSC | STATUS_BIT_CONFIRM):
+			status = (STEP_READY | STATUS_BIT_ANSWER);//就绪
 			break;
-		case 0x03:
-			status = 0x81;
+		case (STEP_SJSC | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
 			break;
 		default:
 			char aaa[255];
@@ -48,25 +50,25 @@ void check_status()//第八位为回复位，第七位为确认位
 			break;
 		}
 	}
-	if ((status & 0xdf) == 0x81)
+	if ((status & (STATUS_BIT_STEP| STATUS_BIT_ANSWER)) == (STEP_ICJC| STATUS_BIT_ANSWER))
 	{
-		status &= 0x3f;
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 		icjc_send();
 	}
-	else if ((status & 0xdf) == 0x82)
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_XJZJ | STATUS_BIT_ANSWER))
 	{
-		status &= 0x3f;
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 		xyzj_send();
 	}
-	else if ((status & 0xdf) == 0x83)
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_SJSC | STATUS_BIT_ANSWER))
 	{
-		status &= 0x3f;
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 		sjsc_send();
 	}
-	else if ((status & 0xdf) == 0x84)
-	{
-		return;
-	}
+	//else if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == (STEP_READY | STATUS_BIT_ANSWER))
+	//{
+	//	return;
+	//}
 }
 
 
@@ -132,7 +134,7 @@ char* data_encapsulation(char *send_buffer, const char *data, const UINT length_
 
 void bd_send(const char *buffer, UINT len, UCHR *dis)
 {
-	if (len > 0)
+	if (SEND_BLOCKTIME&&len > 0)
 	{
 		char *send_buffer;
 		send_buffer = (char *)malloc(sizeof(char)*(len + DATA_FIRM_LENTH));
@@ -360,6 +362,13 @@ void Extract_FKXX(UCHR *buf, UINT i)
 	/*if ((status & 0x3f) == 0x01)  //TODO
 		status |= 0xC0;*/
 }
+void Handle_FXXX()
+{
+	if (bdxx.fkxx.flbz == 4)//发射频度未到
+	{
+		SEND_BLOCKTIME = bdxx.fkxx.fjxx[3];
+	}
+}
 void print_fkxx()
 {
 	myprint("反馈信息:");
@@ -383,6 +392,10 @@ void print_fkxx()
 		myprint("加解密错误\n");
 	else if (bdxx.fkxx.flbz == 6)
 		myprint("CRC错误,指令:%c%c%c%c\n", bdxx.fkxx.fjxx[0], bdxx.fkxx.fjxx[1], bdxx.fkxx.fjxx[2], bdxx.fkxx.fjxx[3]);
+	else if (bdxx.fkxx.flbz == 7)
+		myprint("用户级被抑制\n");
+	else if (bdxx.fkxx.flbz == 8)
+		myprint("抑制解除\n");
 }
 
 void Extract_GNTX(UCHR *buf, UINT i)

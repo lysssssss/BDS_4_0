@@ -24,6 +24,8 @@ DWORD myfun2(LPVOID lpParameter)
 	{
 		check_status();
 		//myprint("hello my thread");
+		if (SEND_BLOCKTIME)
+			--SEND_BLOCKTIME;
 		::Sleep(1000);
 	}
 
@@ -33,7 +35,6 @@ int main()
 {
 	HANDLE h1,h2;                                         //定义句柄变量  
 	init();
-
 	if (!mySerialPort.InitPort(2))
 	{
 		std::cout << "initPort fail !" << std::endl;
