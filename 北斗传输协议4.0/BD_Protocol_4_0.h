@@ -6,8 +6,12 @@
 #include "SerialPort.h"  
 
 #define DATA_FIRM_LENTH 6
-
-const int RE_BUFFER_SIZE = 2047;
+#define BD_PRINT_TIME_SEQ 8
+#define BD_PRINT_GNPX_SEQ 5
+#define BD_PRINT_GNTX_ZONE 5
+#define BD_PRINT_GNTX_SEQ 5
+#define BD_PRINT_GNVX_SEQ 5
+const int RE_BUFFER_SIZE = 4095;
 typedef unsigned int  UINT;
 typedef unsigned char  UCHR;
 extern int(*myprint)(_In_z_ _Printf_format_string_ char const* const, ...);
@@ -17,8 +21,11 @@ extern UCHR SEND_BLOCKTIME;
 #define STEP_NONE 0
 #define STEP_ICJC 1
 #define STEP_XJZJ 2
-#define STEP_SJSC 3
-#define STEP_READY 4
+#define STEP_SJSC 0X0F
+#define STEP_GNPS 3
+#define STEP_GNVS 4
+#define STEP_GNTS 5
+#define STEP_READY 10
 #define STATUS_BIT_STEP 0x1f
 
 #define STATUS_BIT_ANSWER (1<<7)
@@ -29,7 +36,7 @@ struct RE_BUFFER
 {
 	UINT wp;
 	UINT rp;
-	UCHR buffer[RE_BUFFER_SIZE];
+	UCHR buffer[RE_BUFFER_SIZE+1];
 };
 extern RE_BUFFER rebuff;
 
@@ -256,4 +263,8 @@ char* data_encapsulation(char *send_buffer, const char *data, const UINT length_
 void bd_send(const char *buffer, UINT len, UCHR *dis);
 void Handle_FXXX();
 void Handle_ZJXX();
+INT UCHRtoINT(UCHR a, UCHR b);
+void gnps_send();
+void gnts_send();
+void gnvs_send();
 #endif __BD_PROTOCOL_4_0_H

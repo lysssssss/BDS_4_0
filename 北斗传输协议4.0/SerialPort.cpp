@@ -137,7 +137,7 @@ bool CSerialPort::openPort(UINT portNo)
 	EnterCriticalSection(&m_csCommunicationSync);
 
 
-	m_hComm = CreateFileA("\\\\.\\COM11",
+	m_hComm = CreateFileA("\\\\.\\COM4",
 		GENERIC_READ | GENERIC_WRITE,
 		0,
 		NULL,
@@ -248,7 +248,7 @@ UINT WINAPI CSerialPort::ListenThread(void* pParam)
 				if (((rebuff.wp + 1)&RE_BUFFER_SIZE) != rebuff.rp)
 				{
 					rebuff.buffer[rebuff.wp++] = cRecved;
-					if (rebuff.wp == RE_BUFFER_SIZE)
+					if (rebuff.wp == RE_BUFFER_SIZE+1)
 						rebuff.wp = 0;
 				}
 

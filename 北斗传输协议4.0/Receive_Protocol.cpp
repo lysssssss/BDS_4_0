@@ -6,9 +6,13 @@ void Receive_Protocol()
 	static UINT error_count = 0;
 	if (rebuff.rp != rebuff.wp)
 	{
-		if (error_count >= 10)
+		if (error_count >= 1024)
 		{
-			//读取错误 TODO
+			//TODO
+			myprint("===================错误===================错误===================错误===================错误\n");
+			rebuff.rp = rebuff.wp=0;
+			error_count = 0;
+			return;
 		}
 		if (check_overflow(&rebuff, 7))//检查是否符合读取条件，7为读取到长度的字节数。&XXXXMM
 		{
@@ -34,6 +38,7 @@ void Receive_Protocol()
 							Extract_GNTX(rebuff.buffer, i);
 						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -60,6 +65,7 @@ void Receive_Protocol()
 							Extract_GNPX(rebuff.buffer, i);
 						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -86,6 +92,7 @@ void Receive_Protocol()
 							Extract_GNVX(rebuff.buffer, i);
 						}
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -112,6 +119,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -139,6 +147,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -165,6 +174,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -191,6 +201,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -217,6 +228,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -250,6 +262,7 @@ void Receive_Protocol()
 						}
 
 						rebuff.rp = (rebuff.rp + _lenth)& RE_BUFFER_SIZE;
+						error_count = 0;
 					}
 					else
 					{
@@ -260,11 +273,13 @@ void Receive_Protocol()
 				else
 				{
 					//不可解析
+					++error_count;
 					rebuff.rp = (rebuff.rp + 1) & RE_BUFFER_SIZE;
 				}
 			}
 			else
 			{
+				++error_count;
 				rebuff.rp = (rebuff.rp + 1) & RE_BUFFER_SIZE;
 			}
 		}

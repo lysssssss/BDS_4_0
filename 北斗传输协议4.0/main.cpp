@@ -12,8 +12,7 @@ DWORD myfun1(LPVOID lpParameter)
 	while (1)
 	{
 		Receive_Protocol();
-		//myprint("hello my c");
-		::Sleep(1);
+		Sleep(1);
 	}
 
 	return 0;
@@ -23,16 +22,16 @@ DWORD myfun2(LPVOID lpParameter)
 	while (1)
 	{
 		check_status();
-		//myprint("hello my thread");
 		if (SEND_BLOCKTIME)
 			--SEND_BLOCKTIME;
-		::Sleep(1000);
+		Sleep(1000);
 	}
 
 	return 0;
 }
 int main()
 {
+
 	HANDLE h1,h2;                                         //定义句柄变量  
 	init();
 	if (!mySerialPort.InitPort(2))

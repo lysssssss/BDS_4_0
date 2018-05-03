@@ -16,6 +16,14 @@ void init()
 
 void check_status()
 {
+	static UINT check_status_count = 0;
+	if (check_status_count >= 6)
+	{
+		status &= 0;
+		status |= STATUS_BIT_ANSWER;
+		check_status_count = 0;
+	}
+
 	if (status & STATUS_BIT_ANSWER)//有回复
 	{
 		switch (status & ~STATUS_BIT_ANSWER)//检查确认位
@@ -29,8 +37,26 @@ void check_status()
 		case (STEP_ICJC | STATUS_BIT_NO_CONFIRM):
 			status = (STEP_ICJC | STATUS_BIT_ANSWER);
 			break;
+		case (STEP_GNPS | STATUS_BIT_CONFIRM):
+			status = (STEP_GNVS | STATUS_BIT_ANSWER);
+			break;
+		case (STEP_GNPS | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
+			break;
+		case (STEP_GNVS | STATUS_BIT_CONFIRM):
+			status = (STEP_GNTS | STATUS_BIT_ANSWER);
+			break;
+		case (STEP_GNVS | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
+			break;
+		case (STEP_GNTS | STATUS_BIT_CONFIRM):
+			status = (STEP_READY | STATUS_BIT_ANSWER);
+			break;
+		case (STEP_GNTS | STATUS_BIT_NO_CONFIRM):
+			status = (STEP_ICJC | STATUS_BIT_ANSWER);
+			break;
 		case (STEP_XJZJ | STATUS_BIT_CONFIRM):
-			status = (STEP_SJSC | STATUS_BIT_ANSWER);
+			status = (STEP_GNPS | STATUS_BIT_ANSWER);
 			break;
 		case (STEP_XJZJ | STATUS_BIT_NO_CONFIRM):
 			status = (STEP_ICJC | STATUS_BIT_ANSWER);
@@ -43,11 +69,11 @@ void check_status()
 			break;
 		default:
 			char aaa[255];
-			for (int i = 0; i < 22; ++i)
+			for (int i = 0; i < 10; ++i)
 			{
-				aaa[i] = '*';
+				aaa[i] = i + 0x30;
 			}
-			bd_send(aaa, (UINT)(22), bdxx.icxx.yhdz);
+			bd_send(aaa, (UINT)(10), bdxx.icxx.yhdz);
 			break;
 		}
 	}
@@ -66,10 +92,29 @@ void check_status()
 		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 		sjsc_send();
 	}
-	//else if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == (STEP_READY | STATUS_BIT_ANSWER))
-	//{
-	//	return;
-	//}
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_GNPS | STATUS_BIT_ANSWER))
+	{
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
+		gnps_send();
+	}
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_GNVS | STATUS_BIT_ANSWER))
+	{
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
+		gnvs_send();
+	}
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_GNTS | STATUS_BIT_ANSWER))
+	{
+		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
+		gnts_send();
+	}
+	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_READY | STATUS_BIT_ANSWER))
+	{
+
+	}
+	else
+	{
+		++check_status_count;
+	}
 }
 
 
@@ -86,6 +131,49 @@ void icjc_send()
 	mySerialPort.WriteData(sendbuffer, 12);
 }
 
+void gnps_send()
+{
+	UCHR sendbuffer[14] = "$GNPS0?0000?";
+	sendbuffer[5] = 0;
+	sendbuffer[6] = 0X0D;
+	sendbuffer[7] = bdxx.icxx.yhdz[0];
+	sendbuffer[8] = bdxx.icxx.yhdz[1];
+	sendbuffer[9] = bdxx.icxx.yhdz[2];
+	sendbuffer[10] = (UINT)BD_PRINT_GNPX_SEQ >> 8;
+	sendbuffer[11] = (UINT)BD_PRINT_GNPX_SEQ & 0xff;
+	sendbuffer[12] = xor_checksum2(sendbuffer, 12);
+	mySerialPort.WriteData(sendbuffer, 13);
+}
+
+void gnvs_send()
+{
+	UCHR sendbuffer[14] = "$GNVS0?0000?";
+	sendbuffer[5] = 0;
+	sendbuffer[6] = 0X0D;
+	sendbuffer[7] = bdxx.icxx.yhdz[0];
+	sendbuffer[8] = bdxx.icxx.yhdz[1];
+	sendbuffer[9] = bdxx.icxx.yhdz[2];
+	sendbuffer[10] = (UINT)BD_PRINT_GNVX_SEQ >> 8;
+	sendbuffer[11] = (UINT)BD_PRINT_GNVX_SEQ & 0xff;
+	sendbuffer[12] = xor_checksum2(sendbuffer, 12);
+	mySerialPort.WriteData(sendbuffer, 13);
+}
+
+void gnts_send()
+{
+	UCHR sendbuffer[15] = "$GNTS0?0000?";
+	sendbuffer[5] = 0;
+	sendbuffer[6] = 0X0E;
+	sendbuffer[7] = bdxx.icxx.yhdz[0];
+	sendbuffer[8] = bdxx.icxx.yhdz[1];
+	sendbuffer[9] = bdxx.icxx.yhdz[2];
+	sendbuffer[10] = BD_PRINT_GNTX_ZONE;
+	sendbuffer[11] = (UINT)BD_PRINT_GNTX_SEQ >> 8;
+	sendbuffer[12] = (UINT)BD_PRINT_GNTX_SEQ & 0xff;
+	sendbuffer[13] = xor_checksum2(sendbuffer, 13);
+	mySerialPort.WriteData(sendbuffer, 14);
+}
+
 void xyzj_send()
 {
 	UCHR sendbuffer[14] = "$XTZJ0?00000?";
@@ -94,8 +182,8 @@ void xyzj_send()
 	sendbuffer[7] = bdxx.icxx.yhdz[0];
 	sendbuffer[8] = bdxx.icxx.yhdz[1];
 	sendbuffer[9] = bdxx.icxx.yhdz[2];
-	sendbuffer[10] = 0;
-	sendbuffer[11] = 10;
+	sendbuffer[10] = (UINT)BD_PRINT_TIME_SEQ >> 8;
+	sendbuffer[11] = (UINT)BD_PRINT_TIME_SEQ & 0xff;
 	sendbuffer[12] = xor_checksum2(sendbuffer, 12);
 	mySerialPort.WriteData(sendbuffer, 13);
 }
@@ -108,8 +196,8 @@ void sjsc_send()
 	sendbuffer[7] = bdxx.icxx.yhdz[0];
 	sendbuffer[8] = bdxx.icxx.yhdz[1];
 	sendbuffer[9] = bdxx.icxx.yhdz[2];
-	sendbuffer[10] = 0;
-	sendbuffer[11] = 1;
+	sendbuffer[10] = (UINT)BD_PRINT_TIME_SEQ >> 8;
+	sendbuffer[11] = (UINT)BD_PRINT_TIME_SEQ & 0xff;
 	sendbuffer[12] = xor_checksum2(sendbuffer, 12);
 	mySerialPort.WriteData(sendbuffer, 13);
 }
@@ -140,14 +228,28 @@ void bd_send(const char *buffer, UINT len, UCHR *dis)
 		char *send_buffer;
 		send_buffer = (char *)malloc(sizeof(char)*(len + DATA_FIRM_LENTH));
 		txsq_send(data_encapsulation(send_buffer, buffer, len), len + DATA_FIRM_LENTH, dis);
-		free(send_buffer);
+		//txsq_send(buffer, len, dis);
+		if (send_buffer != NULL)
+			free(send_buffer);
+	}
+	else
+	{
+		if (!BSGL)
+			myprint("无波束  ");
+		if (error_flag)
+			myprint("硬件错误  ");
+		if (SEND_BLOCKTIME)
+			myprint("频度未到:%d秒  ", SEND_BLOCKTIME);
+		if (!len)
+			myprint("发送长度为0  ");
+		myprint("\n");
 	}
 }
 
 void txsq_send(const char *buffer, UINT len, UCHR *dis)
 {
 	UINT lenth = bdxx.txsq.lenth + len, i = 0;;
-	UCHR sendbuffer[255] = "$TXSQ0?00000?";//最多只能发送210字节
+	UCHR sendbuffer[1024] = "$TXSQ0?00000?";//最多只能发送210字节
 	sendbuffer[5] = lenth >> 8;
 	sendbuffer[6] = lenth & 0xff;
 	sendbuffer[7] = bdxx.icxx.yhdz[0];
@@ -224,21 +326,15 @@ UCHR xor_checksum2(UCHR *buf, UINT len)
 }
 
 
-
-
-
-
-
-
 void Handle_ZJXX()
 {
-	if (!bdxx.zjxx.iczt || !bdxx.zjxx.yjzt || bdxx.zjxx.rzzt != 0x02)
+	if (bdxx.zjxx.iczt || bdxx.zjxx.yjzt || bdxx.zjxx.rzzt != 0x02)
 		error_flag = 1;
 	for (int i = 0; i < 6; ++i)
 	{
 		if (bdxx.zjxx.bsgl[i])
 		{
-			BSGL ^= (1 << i);
+			BSGL |= (1 << i);
 		}
 		else
 		{
@@ -247,10 +343,6 @@ void Handle_ZJXX()
 	}
 
 }
-
-
-
-
 
 void Handle_FXXX()
 {
@@ -261,12 +353,37 @@ void Handle_FXXX()
 }
 
 
-
-
-
 UINT UCHRtoUINT(UCHR a, UCHR b)
 {
-	return ((UINT)a << 8) & 0xff00 + (UINT)b;
+	return (UINT)a * 256 + (UINT)b;
+}
+
+/*
+对于有符号参数，第 1 位符号位统一规定为“0”表示“+”，
+“1”表示“-”，其后位数为参数值，用原码表示。
+*/
+int UCHRtoINT(UCHR a, UCHR b)
+{
+	int result=0,flag=0;
+	if (a & 0x80)
+	{
+		flag = -1;
+	}
+	else
+	{
+		flag = 1;
+	}
+	for (int i = 0; i < 7; ++i)
+	{
+		if (a&(1 << i))
+			result |= (1 << (i + 8));
+	}
+	for (int i = 0; i < 8; ++i)
+	{
+		if (b&(1 << i))
+			result |= (1 << i);
+	}
+	return result* flag;
 }
 
 bool check_overflow(RE_BUFFER *buff, UINT value)
@@ -322,6 +439,8 @@ void Analysis_data(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *bu
 void DATA_Handler(const UCHR *fxfdz, const UCHR h, const UCHR m, const UCHR *data, const UINT lenth)
 {
 	//TODO
-
+	for (UINT i = 0; i < lenth; ++i)
+		printf("%c", *data + i);
+	printf("\n");
 }
 

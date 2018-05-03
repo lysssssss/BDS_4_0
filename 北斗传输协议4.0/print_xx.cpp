@@ -7,7 +7,7 @@ void print_dwxx()
 
 void print_txxx()
 {
-	myprint("信息类别:%0x,发信方地址:%0x,%0x,%0x,发送时间:%d:%d,电文长度:%d位,CRC标志%d\n",
+	myprint("通讯信息:信息类别:%0x,发信方地址:%0x,%0x,%0x,发送时间:%d:%d,电文长度:%d位,CRC标志%d\n",
 		bdxx.txxx.xxlb, bdxx.txxx.fxfdz[0], bdxx.txxx.fxfdz[1], bdxx.txxx.fxfdz[2],
 		bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwcd, bdxx.txxx.crc);
 	myprint("电文内容:");
@@ -73,10 +73,10 @@ void print_gntx()
 
 void print_gnpx()
 {
-	myprint("GNPX:经度范围:%d,经度%d,经分%d,经秒%d,经小秒%d,纬度范围%d,纬度%d,纬分%d,纬秒%d,纬小秒%d,高度:%d\
-			,速度%d,方向%d,卫星数%d,状态%d,精度系数%d,估计误差:%d", bdxx.gnpx.jdfw, bdxx.gnpx.jd, bdxx.gnpx.jf, bdxx.gnpx.jm, bdxx.gnpx.jxm,
-		bdxx.gnpx.wdfw, bdxx.gnpx.wd, bdxx.gnpx.wf, bdxx.gnpx.wm, bdxx.gnpx.wxm, bdxx.gnpx.gd, bdxx.gnpx.sd, bdxx.gnpx.fx, bdxx.gnpx.wxs,
-		bdxx.gnpx.zt, bdxx.gnpx.jdxs, bdxx.gnpx.gjwc);
+	myprint("GNPX:经度范围:%c,经度%d,经分%d,经秒%d,经小秒%d,纬度范围%c,纬度%d,纬分%d,纬秒%d,纬小秒%d,高度:%d\
+,速度%d,方向%d,卫星数%d,状态%d,精度系数%d,估计误差:%d\n", bdxx.gnpx.jdfw, bdxx.gnpx.jd, bdxx.gnpx.jf, bdxx.gnpx.jm, bdxx.gnpx.jxm,
+bdxx.gnpx.wdfw, bdxx.gnpx.wd, bdxx.gnpx.wf, bdxx.gnpx.wm, bdxx.gnpx.wxm, bdxx.gnpx.gd, bdxx.gnpx.sd, bdxx.gnpx.fx, bdxx.gnpx.wxs,
+bdxx.gnpx.zt, bdxx.gnpx.jdxs, bdxx.gnpx.gjwc);
 }
 void print_gnvx()
 {

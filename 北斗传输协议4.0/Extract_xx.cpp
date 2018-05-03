@@ -36,7 +36,7 @@ void Extract_TXXX(UCHR *buf, UINT i)
 	{
 		bdxx.txxx.dwnr[ii] = *(buf + ((i + 18 + ii)&RE_BUFFER_SIZE));
 	}
-	Analysis_data(bdxx.txxx.fxfdz, bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwnr, bdxx.txxx.dwcd);
+	Analysis_data(bdxx.txxx.fxfdz, bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwnr, bdxx.txxx.dwcd/8);
 	//注意有长度无内容的情况 TODO
 	//注意长度不是字节整数
 	if (bdxx.txxx.dwcd % 8 == 0)
@@ -60,33 +60,26 @@ void Extract_ICXX(UCHR *buf, UINT i)
 	bdxx.icxx.txdj = *(buf + ((i + 17)&RE_BUFFER_SIZE));
 	bdxx.icxx.jmbz = *(buf + ((i + 18)&RE_BUFFER_SIZE));
 	bdxx.icxx.xsyhzs = UCHRtoUINT(*(buf + ((i + 19)&RE_BUFFER_SIZE)), *(buf + ((i + 20)&RE_BUFFER_SIZE)));
-	if ((status & 0x3f) == 0x01)
-		status |= 0xC0;
+	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_ICJC)
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 	print_icxx();
 }
 
 void Extract_ZJXX(UCHR *buf, UINT i)
 {
-	bool flag = false;
 	bdxx.zjxx.iczt = *(buf + ((i + 10)&RE_BUFFER_SIZE));
 	bdxx.zjxx.yjzt = *(buf + ((i + 11)&RE_BUFFER_SIZE));
 	bdxx.zjxx.dcdl = *(buf + ((i + 12)&RE_BUFFER_SIZE));
 	bdxx.zjxx.rzzt = *(buf + ((i + 13)&RE_BUFFER_SIZE));
 	for (int ii = 0; ii < 6; ++ii) {
-		if (bdxx.zjxx.bsgl[ii] = *(buf + ((i + 14 + ii)&RE_BUFFER_SIZE)))
-			flag = true;
+		bdxx.zjxx.bsgl[ii] = *(buf + ((i + 14 + ii)&RE_BUFFER_SIZE));
 	}
 	Handle_ZJXX();
 	print_zjxx();
-	if ((status & 0x3f) == 0x02)
+	if ((status &  ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_XJZJ)
 	{
-		if (flag)
-			status |= 0xC0;
-		else
-		{
-			status &= 0B10111111;
-			status |= 0x80;
-		}
+			status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
+
 	}
 }
 
@@ -99,8 +92,8 @@ void Extract_SJXX(UCHR *buf, UINT _i)
 	bdxx.sjxx.minute = *(buf + ((_i + 15)&RE_BUFFER_SIZE));
 	bdxx.sjxx.second = *(buf + ((_i + 16)&RE_BUFFER_SIZE));
 	print_sjxx();
-	if ((status & 0x3f) == 0x03)
-		status |= 0xC0;
+	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_SJSC)
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 }
 
 void Extract_FKXX(UCHR *buf, UINT i)
@@ -128,8 +121,8 @@ void Extract_GNTX(UCHR *buf, UINT i)
 	bdxx.gntx.minute = *(buf + ((i + 15)&RE_BUFFER_SIZE));
 	bdxx.gntx.second = *(buf + ((i + 16)&RE_BUFFER_SIZE));
 	print_gntx();
-	/*if ((status & 0x3f) == 0x01)  //TODO
-	status |= 0xC0;*/
+	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_GNTS)
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 }
 
 void Extract_GNPX(UCHR *buf, UINT i)
@@ -145,7 +138,7 @@ void Extract_GNPX(UCHR *buf, UINT i)
 	bdxx.gnpx.wf = *(buf + ((i + 17)&RE_BUFFER_SIZE));
 	bdxx.gnpx.wm = *(buf + ((i + 18)&RE_BUFFER_SIZE));
 	bdxx.gnpx.wxm = *(buf + ((i + 19)&RE_BUFFER_SIZE));
-	bdxx.gnpx.gd = UCHRtoUINT(*(buf + ((i + 20)&RE_BUFFER_SIZE)), *(buf + ((i + 21)&RE_BUFFER_SIZE)));
+	bdxx.gnpx.gd = UCHRtoINT(*(buf + ((i + 20)&RE_BUFFER_SIZE)), *(buf + ((i + 21)&RE_BUFFER_SIZE)));
 	bdxx.gnpx.sd = UCHRtoUINT(*(buf + ((i + 22)&RE_BUFFER_SIZE)), *(buf + ((i + 23)&RE_BUFFER_SIZE)));
 	bdxx.gnpx.fx = UCHRtoUINT(*(buf + ((i + 24)&RE_BUFFER_SIZE)), *(buf + ((i + 25)&RE_BUFFER_SIZE)));
 	bdxx.gnpx.wxs = *(buf + ((i + 26)&RE_BUFFER_SIZE));
@@ -153,8 +146,8 @@ void Extract_GNPX(UCHR *buf, UINT i)
 	bdxx.gnpx.jdxs = *(buf + ((i + 28)&RE_BUFFER_SIZE));
 	bdxx.gnpx.gjwc = UCHRtoUINT(*(buf + ((i + 29)&RE_BUFFER_SIZE)), *(buf + ((i + 30)&RE_BUFFER_SIZE)));
 	print_gnpx();
-	/*if ((status & 0x3f) == 0x01)  //TODO
-	status |= 0xC0;*/
+	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_GNPS)
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 }
 
 void Extract_GNVX(UCHR *buf, UINT i)
@@ -171,6 +164,6 @@ void Extract_GNVX(UCHR *buf, UINT i)
 		bdxx.gnvx.wxxx[_i].xzb = *(buf + ((j + 3) &RE_BUFFER_SIZE));
 	}
 	print_gnvx();
-	/*if ((status & 0x3f) == 0x01)  //TODO
-	status |= 0xC0;*/
+	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_GNVS)
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 }
