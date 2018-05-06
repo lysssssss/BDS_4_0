@@ -160,8 +160,8 @@ void Extract_GNVX(UCHR *buf, UINT i)
 		UINT j = i + 12 + _i * 5;
 		bdxx.gnvx.wxxx[_i].wxbh = *(buf + (j &RE_BUFFER_SIZE));
 		bdxx.gnvx.wxxx[_i].wxyj = *(buf + ((j + 1) &RE_BUFFER_SIZE));
-		bdxx.gnvx.wxxx[_i].fwj = UCHRtoUINT(*(buf + ((j + 1) &RE_BUFFER_SIZE)), *(buf + ((j + 2) &RE_BUFFER_SIZE)));
-		bdxx.gnvx.wxxx[_i].xzb = *(buf + ((j + 3) &RE_BUFFER_SIZE));
+		bdxx.gnvx.wxxx[_i].fwj = UCHRtoUINT(*(buf + ((j + 2) &RE_BUFFER_SIZE)), *(buf + ((j + 3) &RE_BUFFER_SIZE)));
+		bdxx.gnvx.wxxx[_i].xzb = *(buf + ((j + 4) &RE_BUFFER_SIZE));
 	}
 	print_gnvx();
 	if ((status & ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_GNVS)

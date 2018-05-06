@@ -230,7 +230,7 @@ extern BDXX bdxx;
 void init();
 void check_status();
 void icjc_send();
-void xyzj_send();
+void xtzj_send();
 void sjsc_send();
 void dwsq_send();
 void txsq_send(const char *buffer, UINT len, UCHR *dis);

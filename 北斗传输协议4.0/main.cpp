@@ -31,7 +31,6 @@ DWORD myfun2(LPVOID lpParameter)
 }
 int main()
 {
-
 	HANDLE h1,h2;                                         //定义句柄变量  
 	init();
 	if (!mySerialPort.InitPort(2))

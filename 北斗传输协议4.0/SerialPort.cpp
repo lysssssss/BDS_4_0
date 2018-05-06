@@ -31,7 +31,7 @@ bool CSerialPort::InitPort(UINT portNo, UINT baud, char parity,
 
 
 	char szDCBparam[50];
-	sprintf_s(szDCBparam, "baud=%d parity=%c data=%d stop=%d", 115200, parity, databits, stopsbits);
+	sprintf_s(szDCBparam, "baud=%d parity=%c data=%d stop=%d", 19200, parity, databits, stopsbits);
 
 
 	if (!openPort(11))//portNo

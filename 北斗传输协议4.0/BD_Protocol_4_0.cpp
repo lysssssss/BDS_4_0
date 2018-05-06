@@ -85,7 +85,7 @@ void check_status()
 	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_XJZJ | STATUS_BIT_ANSWER))
 	{
 		status &= ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
-		xyzj_send();
+		xtzj_send();
 	}
 	else if ((status & (STATUS_BIT_STEP | STATUS_BIT_ANSWER)) == (STEP_SJSC | STATUS_BIT_ANSWER))
 	{
@@ -174,7 +174,7 @@ void gnts_send()
 	mySerialPort.WriteData(sendbuffer, 14);
 }
 
-void xyzj_send()
+void xtzj_send()
 {
 	UCHR sendbuffer[14] = "$XTZJ0?00000?";
 	sendbuffer[5] = 0;
