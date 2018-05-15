@@ -1,11 +1,10 @@
 /***********************Project Version1.0*************************
 @项目名:北斗传输4.0(C++)
-
-@File_name:SerialPort.cpp
-
-@File_UpdateTime:2018年5月16日02:39:46
-
+@File:SerialPort.cpp
 @File_Version:1.0a
+@Author:lys
+@QQ:591986780
+@UpdateTime:2018年5月16日02:39:46
 
 @说明:实现串口基本功能
 
