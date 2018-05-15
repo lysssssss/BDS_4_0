@@ -1,3 +1,20 @@
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
+
+@File_name:BD_Protocol_4_0.cpp
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:解析处理接收到的数据
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
 #include "BD_Protocol_4_0.h"
 
 void Extract_DWXX(UCHR *buf, UINT i)
@@ -36,7 +53,7 @@ void Extract_TXXX(UCHR *buf, UINT i)
 	{
 		bdxx.txxx.dwnr[ii] = *(buf + ((i + 18 + ii)&RE_BUFFER_SIZE));
 	}
-	Analysis_data(bdxx.txxx.fxfdz, bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwnr, bdxx.txxx.dwcd/8);
+	Analysis_data(bdxx.txxx.fxfdz, bdxx.txxx.fxsj_h, bdxx.txxx.fxsj_m, bdxx.txxx.dwnr, bdxx.txxx.dwcd / 8);
 	//注意有长度无内容的情况 TODO
 	//注意长度不是字节整数
 	if (bdxx.txxx.dwcd % 8 == 0)
@@ -78,7 +95,7 @@ void Extract_ZJXX(UCHR *buf, UINT i)
 	print_zjxx();
 	if ((status &  ~(STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM)) == STEP_XJZJ)
 	{
-			status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
+		status |= (STATUS_BIT_ANSWER | STATUS_BIT_CONFIRM);
 
 	}
 }

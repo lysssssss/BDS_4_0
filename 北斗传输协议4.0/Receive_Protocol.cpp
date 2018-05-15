@@ -1,3 +1,20 @@
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
+
+@File_name:BD_Protocol_4_0.cpp
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:处理接收到的数据
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
 #include "BD_Protocol_4_0.h"
 
 void Receive_Protocol()
@@ -10,7 +27,7 @@ void Receive_Protocol()
 		{
 			//TODO
 			myprint("===================错误===================错误===================错误===================错误\n");
-			rebuff.rp = rebuff.wp=0;
+			rebuff.rp = rebuff.wp = 0;
 			error_count = 0;
 			return;
 		}

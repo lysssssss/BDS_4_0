@@ -1,3 +1,21 @@
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
+
+@File_name:BD_Protocol_4_0.cpp
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:实现基本功能
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
+
 #include "BD_Protocol_4_0.h"
 RE_BUFFER rebuff;
 BDXX bdxx;
@@ -364,7 +382,7 @@ UINT UCHRtoUINT(UCHR a, UCHR b)
 */
 int UCHRtoINT(UCHR a, UCHR b)
 {
-	int result=0,flag=0;
+	int result = 0, flag = 0;
 	if (a & 0x80)
 	{
 		flag = -1;
@@ -383,7 +401,7 @@ int UCHRtoINT(UCHR a, UCHR b)
 		if (b&(1 << i))
 			result |= (1 << i);
 	}
-	return result* flag;
+	return result * flag;
 }
 
 bool check_overflow(RE_BUFFER *buff, UINT value)

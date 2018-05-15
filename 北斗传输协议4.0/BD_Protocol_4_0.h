@@ -1,3 +1,20 @@
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
+
+@File_name:BD_Protocol_4_0.h
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:项目头文件
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
 #pragma once
 #ifndef __BD_PROTOCOL_4_0_H
 #define __BD_PROTOCOL_4_0_H
@@ -36,7 +53,7 @@ struct RE_BUFFER
 {
 	UINT wp;
 	UINT rp;
-	UCHR buffer[RE_BUFFER_SIZE+1];
+	UCHR buffer[RE_BUFFER_SIZE + 1];
 };
 extern RE_BUFFER rebuff;
 

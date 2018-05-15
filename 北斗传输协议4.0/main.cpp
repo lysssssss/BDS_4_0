@@ -1,5 +1,20 @@
-// main.cpp : Defines the entry point for the console application.  
-//  
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
+
+@File_name:main.cpp
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:万事好开头
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
 
 #include "SerialPort.h"  
 #include  <iostream>
@@ -31,7 +46,7 @@ DWORD myfun2(LPVOID lpParameter)
 }
 int main()
 {
-	HANDLE h1,h2;                                         //定义句柄变量  
+	HANDLE h1, h2;                                         //定义句柄变量  
 	init();
 	if (!mySerialPort.InitPort(2))
 	{

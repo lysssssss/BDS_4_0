@@ -1,5 +1,20 @@
+/***********************Project Version1.0*************************
+@项目名:北斗传输4.0(C++)
 
- 
+@File_name:SerialPort.cpp
+
+@File_UpdateTime:2018年5月16日02:39:46
+
+@File_Version:1.0a
+
+@说明:实现串口基本功能
+
+本程序基于C++的北斗短报文传输程序
+在VS2017里运行通过
+
+Viual Studio 2017 Version:V141
+Windows SDK Version:10.0.16299.0
+******************************************************************/
 #include "SerialPort.h"  
 #include "BD_Protocol_4_0.h"
 
@@ -248,7 +263,7 @@ UINT WINAPI CSerialPort::ListenThread(void* pParam)
 				if (((rebuff.wp + 1)&RE_BUFFER_SIZE) != rebuff.rp)
 				{
 					rebuff.buffer[rebuff.wp++] = cRecved;
-					if (rebuff.wp == RE_BUFFER_SIZE+1)
+					if (rebuff.wp == RE_BUFFER_SIZE + 1)
 						rebuff.wp = 0;
 				}
 

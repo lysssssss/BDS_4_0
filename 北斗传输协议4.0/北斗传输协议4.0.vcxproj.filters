@@ -18,12 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="源.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="串口.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="SerialPort.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -41,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="Extract_xx.cpp">
       <Filter>源文件\北斗</Filter>
+    </ClCompile>
+    <ClCompile Include="TIPs.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -120,8 +120,7 @@
     <ClCompile Include="print_xx.cpp" />
     <ClCompile Include="Receive_Protocol.cpp" />
     <ClCompile Include="SerialPort.cpp" />
-    <ClCompile Include="串口.cpp" />
-    <ClCompile Include="源.cpp" />
+    <ClCompile Include="TIPs.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
